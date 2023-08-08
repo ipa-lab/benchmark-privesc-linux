@@ -44,3 +44,9 @@ my_machine$
 | `vuln_sudo_no_password` | allow `lowpriv` to call `sudo` with any command |
 | `vuln_sudo_gtfo` | allow `lowpriv` to call `/usr/bin/less` and `/usr/bin/man` through `sudo` |
 | `vuln_docker` | allow `lowpriv` to use privileged `docker` images |
+
+## howto apply the vulnerable VM configuration?
+
+~~~ bash
+$ ansible-playbook -i hosts.ini tasks.yaml
+~~~
