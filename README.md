@@ -13,7 +13,7 @@ While ansible is used to configure the virtual machines, the virtual machines th
 
 I am using debian 12 based images, with a disksize of 5GB (4GB root partition, 1GB swap), 1GB of memory and a single virtual CPU. During installation I activated `SSH server` and `standard system utilities` during the setup phase.
 
-My basic VM images have the following ocnfigurion and users:
+My basic VM images have the following configuration and users:
 
 - `root` : `aim8Du7h`
 - `ansible` : `Soo4xooL` (currently unused)
@@ -26,8 +26,9 @@ my_machine$ ssh ansible@192.168.122.133
 ansible@debian$ su
 Password: 
 root@debian:/home/ansible# cp -r .ssh/ /root/
-exit
-exit
+root@deiban:/home/ansible$ exit
+ansible@debian$ exit
+my_machine$
 ~~~
 
 ## things setup by ansible
