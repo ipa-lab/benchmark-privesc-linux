@@ -77,3 +77,44 @@
         name: lowpriv
         groups: docker
         append: yes
+
+- name: root user has same password as lowpriv
+  hosts: root_password_reuse
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: "change root password to trustno1"
+      user:
+        name: root
+        password: "$6$PA4G/HgbK6q3pqR8$UMh7rQ51EW8VBKYs00MYZgvZP/AuLXRb99h5JUbaGm3xuHW4Z39Yv1FrkllSlWeGqU6pQvdOh/s4/rKKbw4fm1"
+
+- name: root user has a very weak password
+  hosts: root_password_root
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: "change root password to root"
+      user:
+        name: root
+        password: "$6$ov/OPo1ui7udnNnD$ZMYmpzEWuJMlHuELnJ/Ne5nIRDLswbSiWbovjB5jVlzgPR0KMRIqz7zNeH170uVgYeEskbGRKtDXJ/m50a1nD/"
+
+- name: lowpriv user has a SSH key for the root account
+  hosts: root_allows_lowpriv_to_ssh
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: "create SSH key"
+      user:
+        name: lowpriv
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+    - name: "read SSH key from filesystem"
+      slurp:
+        src: /home/lowpriv/.ssh/id_rsa.pub
+      register: ssh_key
+    - name: "copy SSH key to root"
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: "{{ ssh_key['content'] | b64decode }}"

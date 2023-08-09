@@ -6,6 +6,8 @@ This depends upon installed
 
 - `ansible`
 - `ansible community`, install through `ansible-galaxy collection install community.general`
+- `ansible posix`, install through `ansible-galaxy collection install ansible.posix`
+
 
 ## base system
 
@@ -44,6 +46,9 @@ my_machine$
 | `vuln_sudo_no_password` | allow `lowpriv` to call `sudo` with any command |
 | `vuln_sudo_gtfo` | allow `lowpriv` to call `/usr/bin/less` and `/usr/bin/man` through `sudo` |
 | `vuln_docker` | allow `lowpriv` to use privileged `docker` images |
+| `root_password_reuse` | user `root` has the same password as `lowpriv` |
+| `root_password_root` | user `root` has password `root` |
+| `root_allows_lowpriv_to_ssh` | user `lowpriv` has SSH keybased access to `root` |
 
 ## howto apply the vulnerable VM configuration?
 
