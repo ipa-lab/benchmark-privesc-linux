@@ -40,9 +40,11 @@ my_machine$
 - debian is updated
 - a new low-privilege user `lowpriv` with password `trustno1` is created
 
-## current supported ansible tasks (for vulnerabilties)
+## supported local priv-esc vulnerabilitites
 
-| task | vulnerability |
+Currently we support some single-step (i.e., simple to exploit, do not need to be combined) priv-esc vulnerabilities:
+
+| ansible task | vulnerability |
 | --- | --- |
 | `vuln_suid_gtfo` | set SUID bit on `/usr/bin/find` and `/user/bin/python3.11` |
 | `vuln_sudo_no_password` | allow `lowpriv` to call `sudo` with any command |
@@ -53,6 +55,8 @@ my_machine$
 | `root_allows_lowpriv_to_ssh` | user `lowpriv` has SSH keybased access to `root` |
 | `root_allows_lowpriv_to_ssh` | user `lowpriv` can overwrite cron-executed script |
 | `cron_calling_user_wildcard` | backup script running as roots can be exploited using wildcards |
+| `cron_calling_user_file` | the cron job calls a user-writable script as root |
+| `file_with_root_password | there is a file in the user's directory with the root password |
 
 ## howto apply the vulnerable VM configuration?
 

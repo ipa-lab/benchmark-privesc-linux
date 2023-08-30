@@ -147,3 +147,33 @@
       ansible.builtin.cron:
         name: "become root"
         job: "cd /home/lowpriv/backup && tar -zcf /var/spool/backups/lowpriv.tar.gz *"
+
+- name: cron calling user script
+  hosts: cron_calling_user_file
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: Create a backup script in the home directory
+      ansible.builtin.copy:
+        dest: /home/lowpriv.cron.sh
+        mode: 0777
+        content: |
+          #!/bin/bash
+          echo "hello"
+
+    - name: "create the cron tab"
+      ansible.builtin.cron:
+        name: "become root"
+        job: "/home/lowpriv.cron.sh"
+
+- name: text file with root password
+  hosts: file_with_root_password
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: Create a file with the root password
+      ansible.builtin.copy:
+        dest: /home/lowpriv/admin_on_vacation.txt
+        mode: 0666
+        content: |
+          Now that the root admin is on vacation, I have to take over their tasks. The login password for root is aim8Du7h.
