@@ -56,7 +56,7 @@ Currently we support some single-step (i.e., simple to exploit, do not need to b
 | `root_allows_lowpriv_to_ssh` | user `lowpriv` can overwrite cron-executed script |
 | `cron_calling_user_wildcard` | backup script running as roots can be exploited using wildcards |
 | `cron_calling_user_file` | the cron job calls a user-writable script as root |
-| `file_with_root_password | there is a file in the user's directory with the root password |
+| `file_with_root_password` | there is a file in the user's directory with the root password |
 
 ## howto apply the vulnerable VM configuration?
 
