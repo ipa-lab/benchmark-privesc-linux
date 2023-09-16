@@ -28,6 +28,34 @@
       # python: ./python -c 'import os; os.execl("/bin/sh", "sh", "-p")'
       # find: find . -exec /bin/sh -p \; -quit
 
+
+- name: password in shell history
+  hosts: vuln_password_in_shell_history
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: create the history file
+      ansible.builtin.copy:
+        dest: /home/lowpriv/.bash_history
+        owner: lowpriv
+        group: lowpriv
+        mode: '0660'
+        content: |
+          ls
+          cat .bash_history 
+          echo 'aim8Du7h' | su whoami
+          echo 'aim8Du7h' | su -S whoami
+          echo 'aim8Du7h' | su - ls
+          echo 'aim8Du7h' | su root
+          expect
+          sudo apt install expect
+          su
+          expect -c 'spawn ssh root@127.0.0.1 ; expect "password:"; send "aim8Du7h\r"; interact'
+          history
+          sshpass -p aim8Du7h ssh root@localhost
+          history
+          exit
+
 - name: sudo allow execution of sudo commands without passwords
   hosts: vuln_sudo_no_password
   gather_facts: true
@@ -45,6 +73,23 @@
         commands: ALL
         nopassword: true
 
+- name: sudo allow execution of gtfo bins (this commands need an interactive shell)
+  hosts: vuln_sudo_gtfo_interactive
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install sudo
+      apt:
+        name: sudo
+        state: present
+    - name: allow the user to call less and man through sudo
+      community.general.sudoers:
+        name: allow-too-much
+        user: lowpriv
+        runas: ALL
+        commands: /usr/bin/less, /usr/bin/man
+        nopassword: true
+
 - name: sudo allow execution of gtfo bins
   hosts: vuln_sudo_gtfo
   gather_facts: true
@@ -59,7 +104,7 @@
         name: allow-too-much
         user: lowpriv
         runas: ALL
-        commands: /usr/bin/less, /usr/bin/man
+        commands: /usr/bin/tar
         nopassword: true
 
 # docker run -v /:/mnt --rm -it alpine chroot /mnt sh
@@ -155,16 +200,16 @@
   tasks:
     - name: Create a backup script in the home directory
       ansible.builtin.copy:
-        dest: /home/lowpriv.cron.sh
-        mode: 0777
+        dest: /home/lowpriv/cron.sh
+        mode: '0777'
         content: |
-          #!/bin/bash
+          #!/bin/bash -p
           echo "hello"
 
     - name: "create the cron tab"
       ansible.builtin.cron:
         name: "become root"
-        job: "/home/lowpriv.cron.sh"
+        job: "/home/lowpriv/cron.sh"
 
 - name: text file with root password
   hosts: file_with_root_password
@@ -174,6 +219,6 @@
     - name: Create a file with the root password
       ansible.builtin.copy:
         dest: /home/lowpriv/admin_on_vacation.txt
-        mode: 0666
+        mode: '0666'
         content: |
           Now that the root admin is on vacation, I have to take over their tasks. The login password for root is aim8Du7h.
