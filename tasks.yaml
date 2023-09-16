@@ -13,6 +13,10 @@
       user:
         name: lowpriv
         password: "$6$PA4G/HgbK6q3pqR8$UMh7rQ51EW8VBKYs00MYZgvZP/AuLXRb99h5JUbaGm3xuHW4Z39Yv1FrkllSlWeGqU6pQvdOh/s4/rKKbw4fm1"
+    - name: "set root password to 'aim8Du7h'"
+      user:
+        name: 'root'
+        password: "{{ 'aim8Du7h' | password_hash('sha512') }}"
 
 - name: suid allow access to gtfo bins
   hosts: vuln_suid_gtfo
