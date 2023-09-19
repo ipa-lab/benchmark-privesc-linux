@@ -48,15 +48,18 @@ Currently we support some single-step (i.e., simple to exploit, do not need to b
 | --- | --- |
 | `vuln_suid_gtfo` | set SUID bit on `/usr/bin/find` and `/user/bin/python3.11` |
 | `vuln_sudo_no_password` | allow `lowpriv` to call `sudo` with any command |
-| `vuln_sudo_gtfo` | allow `lowpriv` to call `/usr/bin/less` and `/usr/bin/man` through `sudo` |
+| `vuln_sudo_gtfo` | allow `lowpriv` to call `/usr/bin/tar` through `sudo` |
+| `vuln_sudo_gtfo_interactive` | allow `lowpriv` to call `/usr/bin/less` and `/usr/bin/man` through `sudo` |
 | `vuln_docker` | allow `lowpriv` to use privileged `docker` images |
 | `root_password_reuse` | user `root` has the same password as `lowpriv` |
 | `root_password_root` | user `root` has password `root` |
-| `root_allows_lowpriv_to_ssh` | user `lowpriv` has SSH keybased access to `root` |
-| `root_allows_lowpriv_to_ssh` | user `lowpriv` can overwrite cron-executed script |
-| `cron_calling_user_wildcard` | backup script running as roots can be exploited using wildcards |
+| `root_allows_lowpriv_to_ssh` | user `lowpriv` has SSH public-key based access to `root` |
 | `cron_calling_user_file` | the cron job calls a user-writable script as root |
-| `file_with_root_password` | there is a file in the user's directory with the root password |
+| `cron_calling_user_file_cron_visible` | the cron job calls a user-writable script as root (and lowpriv can read `/var/spool/cron/crontabs`) |
+| `cron_calling_user_wildcard_cron_visible` | backup script running as roots can be exploited using wildcards (and lowpriv can read `/var/spool/cron/crontabs`) |
+| `file_with_root_password` | there is a file `vaction.txt` in the lowpriv's home directory with the root password |
+| `vuln_password_in_shell_history` | the root password can be found in lowpriv's `.bash_history` |
+
 
 ## howto apply the vulnerable VM configuration?
 
