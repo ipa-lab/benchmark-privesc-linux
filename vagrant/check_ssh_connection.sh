@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in $(seq 1 11); do
+for i in $(seq 1 13); do
 	ip=$((150+$i))
 	hostname=$(ssh root@192.168.122.$ip hostname)
 
