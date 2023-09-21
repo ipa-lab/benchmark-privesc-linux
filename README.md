@@ -10,8 +10,26 @@ This depends upon installed
 - `ansible community`, install through `ansible-galaxy collection install community.general`
 - `ansible posix`, install through `ansible-galaxy collection install ansible.posix`
 
+## Providing VM base images
 
-## base system
+You can either provide the base VM image yourself or use `vagrant` to provision new virtual machines.
+
+### Using vagrant to spawn KVM-based virtual machines
+
+You must have the following package installed:
+
+- basic compiler tools (`gcc`, `make`, `gawk`)
+- `libvirt`, `libvirt-daemon-system` and `libvirt-dev`
+- vagrant
+- vagrant libvirt plugin (`vagrant plugin install vagrant-libvirt`)
+
+Make sure that your current user is part of the `libvirt` group to prevent password entry (`sudo usermod <username> -a -G libvirt`).
+
+Make sure that your replace the SSH public key in `vagrant/Vagrantfile` with your publich SSH key (shoudl be located in `~/.ssh/id_rsa.pub`).
+
+With that you should be able to call `./testrun.sh`
+
+### manually creating a base VM image
 
 While ansible is used to configure the virtual machines, the virtual machines themselves (and SSH access) must already be provided.
 
@@ -20,7 +38,6 @@ I am using debian 12 based images, with a disksize of 5GB (4GB root partition, 1
 My basic VM images have the following configuration and users:
 
 - `root` : `aim8Du7h`
-- `ansible` : `Soo4xooL` (currently unused)
 
 Install a SSH key for user ansible and root (192.168.122.133 ist the VM's IP):
 
@@ -39,6 +56,7 @@ my_machine$
 
 - debian is updated
 - a new low-privilege user `lowpriv` with password `trustno1` is created
+- the `root` password is set to `aim8Du7h`
 
 ## supported local priv-esc vulnerabilitites
 
