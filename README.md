@@ -62,3 +62,11 @@ Make sure that your current user is part of the `libvirt` group to prevent passw
 Make sure that your replace the SSH public key in `vagrant/Vagrantfile` with your publich SSH key (shoudl be located in `~/.ssh/id_rsa.pub`).
 
 With that you should be able to call `./create_and_start_vms.sh`
+
+## How to contribute additional testcases?
+
+We are more than happy to add new test-cases, to do this please
+
+- look at `tasks.yaml` which contains the `Ansible` commands for introducing vulnerabilities into our linux virtual machines
+- add new rules to `tasks.yaml`
+- create pull request (: thank you!
