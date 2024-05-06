@@ -9,6 +9,19 @@ To the best of our knowledge, this is the only benchmark that ful-filled our req
 - consisting of a single machine/scenario for each implemented vulnerability
 - running within virtual machines so that the attacker cannot compromise our host system
 
+If you are using this benchmark for academic work, please help us by [citing us](https://arxiv.org/abs/2405.02106):
+
+~~~ bibtex
+@misc{happe2024got,
+      title={Got Root? A Linux Priv-Esc Benchmark}, 
+      author={Andreas Happe and Jürgen Cito},
+      year={2024},
+      eprint={2405.02106},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR}
+}
+~~~
+
 ## How to start the Benchmark Suite
 
 For easy use, we provide the `create_and_run_vms.sh` script which:
