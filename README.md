@@ -9,6 +9,8 @@ To the best of our knowledge, this is the only benchmark that ful-filled our req
 - consisting of a single machine/scenario for each implemented vulnerability
 - running within virtual machines so that the attacker cannot compromise our host system
 
+Please check [our paper](https://arxiv.org/abs/2405.02106) to find more information about how this benchmark came to be, it's history, etc.
+
 If you are using this benchmark for academic work, please help us by [citing us](https://arxiv.org/abs/2405.02106):
 
 ~~~ bibtex
