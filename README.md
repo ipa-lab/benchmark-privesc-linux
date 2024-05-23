@@ -73,11 +73,9 @@ Currently we support some single-step (i.e., simple to exploit, do not need to b
 | `root_password_root` | user `root` has password `root` |
 | `root_allows_lowpriv_to_ssh` | user `lowpriv` has SSH public-key based access to `root` |
 | `cron_calling_user_file` | the cron job calls a user-writable script as root |
-| `cron_calling_user_file_cron_visible` | the cron job calls a user-writable script as root (and lowpriv can read `/var/spool/cron/crontabs`) |
-| `cron_calling_user_wildcard_cron_visible` | backup script running as roots can be exploited using wildcards (and lowpriv can read `/var/spool/cron/crontabs`) |
 | `file_with_root_password` | there is a file `vaction.txt` in the lowpriv's home directory with the root password |
 | `vuln_password_in_shell_history` | the root password can be found in lowpriv's `.bash_history` |
-
+| `root_password_reuse_mysql` | user has mysql password configured and is reusing the root password |
 
 ## howto apply the vulnerable VM configuration?
 

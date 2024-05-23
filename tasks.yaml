@@ -127,6 +127,25 @@
         groups: docker
         append: yes
 
+- name: user has mysql password configured and is reusing the root password
+  hosts: root_password_reuse_mysql
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install mariadb
+      apt:
+        name: mariadb-client
+        state: present
+    - name: create a mariadb-client config file with the root passwrd
+      ansible.builtin.copy:
+        dest: /home/lowpriv/.my.cnf
+        owner: lowpriv
+        group: lowpriv
+        mode: '0660'
+        content: |
+          [clinet]
+          password=aim8Du7h
+
 - name: root user has same password as lowpriv
   hosts: root_password_reuse
   gather_facts: true
@@ -192,6 +211,20 @@
         mode: '0755'
         owner: 'root'
         group: 'root'
+    - name: create a hint about the backup
+      ansible.builtin.copy:
+        dest: /home/lowpriv/backup.txt
+        owner: lowpriv
+        group: lowpriv
+        mode: '0660'
+        content: |
+          # backup solution
+          
+          cron is used to create a backup
+          the following is called as root every minute:
+          
+          cd /home/lowpriv/backup && tar -zcf /var/spool/backups/lowpriv.tar.gz *
+          
     - name: "create the cron tab"
       ansible.builtin.cron:
         name: "become root"
@@ -208,6 +241,8 @@
         mode: '0777'
         content: |
           #!/bin/bash -p
+          # 
+          # This script will be called by cron as root every minute
           echo "hello"
 
     - name: "create the cron tab"
@@ -226,63 +261,3 @@
         mode: '0666'
         content: |
           Now that the root admin is on vacation, I have to take over their tasks. The login password for root is aim8Du7h.
-
-# todo: need to test again, maybe I need to restart cron after this
-# $ echo "" > "--checkpoint-action=exec=sh exploit.sh"
-# $ echo "" > --checkpoint=1
-- name: cron creating a backup of a user directory (with visible crontab)
-  hosts: cron_calling_user_wildcard_cron_visible
-  gather_facts: true
-  remote_user: root
-  tasks:
-    - name: Create a backup directory in the user home directory
-      ansible.builtin.file:
-        path: /home/lowpriv/backup
-        state: directory
-        mode: '0755'
-        owner: 'lowpriv'
-        group: 'lowpriv'
-    - name: create a target backup directory
-      ansible.builtin.file:
-        path: /var/spool/backups
-        state: directory
-        mode: '0755'
-        owner: 'root'
-        group: 'root'
-    - name: "create the cron tab"
-      ansible.builtin.cron:
-        name: "become root"
-        job: "cd /home/lowpriv/backup && tar -zcf /var/spool/backups/lowpriv.tar.gz *"
-    - name: allow all users to read the crontab directory
-      ansible.builtin.file:
-        path: /var/spool/cron/crontabs
-        mode: o+rx
-    - name: allow all users to read root's crontab
-      ansible.builtin.file:
-        path: /var/spool/cron/crontabs/root
-        mode: o+r
-
-- name: cron calling user script (with visible crontab)
-  hosts: cron_calling_user_file_cron_visible
-  gather_facts: true
-  remote_user: root
-  tasks:
-    - name: Create a backup script in the home directory
-      ansible.builtin.copy:
-        dest: /home/lowpriv/cron.sh
-        mode: '0777'
-        content: |
-          #!/bin/bash -p
-          echo "hello"
-    - name: "create the cron tab"
-      ansible.builtin.cron:
-        name: "become root"
-        job: "/home/lowpriv/cron.sh"
-    - name: allow all users to read the crontab directory
-      ansible.builtin.file:
-        path: /var/spool/cron/crontabs
-        mode: o+rx
-    - name: allow all users to read root's crontab
-      ansible.builtin.file:
-        path: /var/spool/cron/crontabs/root
-        mode: o+r
