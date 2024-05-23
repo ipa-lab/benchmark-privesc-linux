@@ -1,64 +1,45 @@
-# create VMs with priv-esc vulnerabilities
+# A comprehensive Linux Privilege-Escalation Benchmark
 
-We need a benchmark for some priv-esc testing.. so let's utilize somes stuff from [hacktricks](https://book.hacktricks.xyz/linux-hardening/privilege-escalation)
+This is a simple benchmark for linux privilege escalation attacks, i.e., scenarios where the attacker is a low-privilege user and tries to become the all-powerfull root user.
 
-## setup instructions
+To the best of our knowledge, this is the only benchmark that ful-filled our requirements
 
-This depends upon installed
+- being fully open-source (and thus allowing for experiment control/repeatability)
+- being offline usable
+- consisting of a single machine/scenario for each implemented vulnerability
+- running within virtual machines so that the attacker cannot compromise our host system
 
-- `ansible`
-- `ansible community`, install through `ansible-galaxy collection install community.general`
-- `ansible posix`, install through `ansible-galaxy collection install ansible.posix`
+Please check [our paper](https://arxiv.org/abs/2405.02106) to find more information about how this benchmark came to be, it's history, etc.
 
-## Providing VM base images
+If you are using this benchmark for academic work, please help us by [citing us](https://arxiv.org/abs/2405.02106):
 
-You can either provide the base VM image yourself or use `vagrant` to provision new virtual machines.
-
-### Using vagrant to spawn KVM-based virtual machines
-
-You must have the following package installed:
-
-- basic compiler tools (`gcc`, `make`, `gawk`)
-- `libvirt`, `libvirt-daemon-system` and `libvirt-dev`
-- vagrant
-- vagrant libvirt plugin (`vagrant plugin install vagrant-libvirt`)
-
-Make sure that your current user is part of the `libvirt` group to prevent password entry (`sudo usermod <username> -a -G libvirt`).
-
-Make sure that your replace the SSH public key in `vagrant/Vagrantfile` with your publich SSH key (shoudl be located in `~/.ssh/id_rsa.pub`).
-
-With that you should be able to call `./testrun.sh`
-
-### manually creating a base VM image
-
-While ansible is used to configure the virtual machines, the virtual machines themselves (and SSH access) must already be provided.
-
-I am using debian 12 based images, with a disksize of 5GB (4GB root partition, 1GB swap), 1GB of memory and a single virtual CPU. During installation I activated `SSH server` and `standard system utilities` during the setup phase.
-
-My basic VM images have the following configuration and users:
-
-- `root` : `aim8Du7h`
-
-Install a SSH key for user ansible and root (192.168.122.133 ist the VM's IP):
-
-~~~ bash
-my_machine$ ssh-copy-id ansible@192.168.122.133
-my_machine$ ssh ansible@192.168.122.133
-ansible@debian$ su
-Password: 
-root@debian:/home/ansible# cp -r .ssh/ /root/
-root@deiban:/home/ansible$ exit
-ansible@debian$ exit
-my_machine$
+~~~ bibtex
+@misc{happe2024got,
+      title={Got Root? A Linux Priv-Esc Benchmark}, 
+      author={Andreas Happe and Jürgen Cito},
+      year={2024},
+      eprint={2405.02106},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR}
+}
 ~~~
 
-## things setup by ansible
+## How to start the Benchmark Suite
 
-- debian is updated
+For easy use, we provide the `create_and_run_vms.sh` script which:
+
+- uses libvirt to start new QEMU/KVM virtual machines (this means, you currently have to run a linux host system)
+- then uses ansible to configure the different virtual machines, i.e., introduces vulnerabilities
+- starts them within the virtual network with predefined credentials for the low-privilege user
+
+All images have the same credentials:
+
 - a new low-privilege user `lowpriv` with password `trustno1` is created
 - the `root` password is set to `aim8Du7h`
 
-## supported local priv-esc vulnerabilitites
+Enjoy!
+
+## Supported Linux Priv-Escalation Vulnerabilitites
 
 Currently we support some single-step (i.e., simple to exploit, do not need to be combined) priv-esc vulnerabilities:
 
@@ -77,8 +58,28 @@ Currently we support some single-step (i.e., simple to exploit, do not need to b
 | `vuln_password_in_shell_history` | the root password can be found in lowpriv's `.bash_history` |
 | `root_password_reuse_mysql` | user has mysql password configured and is reusing the root password |
 
-## howto apply the vulnerable VM configuration?
+## Setup Instructions
 
-~~~ bash
-$ ansible-playbook -i hosts.ini tasks.yaml
-~~~
+This depends upon the following packages being installed
+
+- `ansible`
+- `ansible community`, install through `ansible-galaxy collection install community.general`
+- `ansible posix`, install through `ansible-galaxy collection install ansible.posix`
+- basic compiler tools (`gcc`, `make`, `gawk`)
+- `libvirt`, `libvirt-daemon-system` and `libvirt-dev`
+- `vagrant`
+- the vagrant libvirt plugin (`vagrant plugin install vagrant-libvirt` after vagrant was installed)
+
+Make sure that your current user is part of the `libvirt` group to prevent password entry (`sudo usermod <username> -a -G libvirt`).
+
+Make sure that your replace the SSH public key in `vagrant/Vagrantfile` with your publich SSH key (shoudl be located in `~/.ssh/id_rsa.pub`).
+
+With that you should be able to call `./create_and_start_vms.sh`
+
+## How to contribute additional testcases?
+
+We are more than happy to add new test-cases, to do this please
+
+- look at `tasks.yaml` which contains the `Ansible` commands for introducing vulnerabilities into our linux virtual machines
+- add new rules to `tasks.yaml`
+- create pull request (: thank you!
