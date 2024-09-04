@@ -26,7 +26,7 @@ If you are using this benchmark for academic work, please help us by [citing us]
 
 ## How to start the Benchmark Suite
 
-For easy use, we provide the `create_and_run_vms.sh` script which:
+For easy use, we provide the `create_and_start_vms.sh` script which:
 
 - uses libvirt to start new QEMU/KVM virtual machines (this means, you currently have to run a linux host system)
 - then uses ansible to configure the different virtual machines, i.e., introduces vulnerabilities
