@@ -5,10 +5,10 @@
 # Usage: ./codespaces_create_and_Start_containers.sh
 
 # Enable strict error handling for better script robustness
-set -e
-set -u
-set -o pipefail
-set -x
+set -e  # Exit immediately if a command exits with a non-zero status
+set -u  # Treat unset variables as an error and exit immediately
+set -o pipefail  # Return the exit status of the last command in a pipeline that failed
+set -x  # Print each command before executing it (useful for debugging)
 
 # Function to find an available port starting from a base port
 find_available_port() {
