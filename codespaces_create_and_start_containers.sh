@@ -48,7 +48,8 @@ start_container() {
 # Function to check if SSH is ready on a container
 check_ssh_ready() {
     local container_ip="$1"
-    timeout 1 ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${container_ip} exit 2>/dev/null
+    # Removed BatchMode=yes and added sshpass for password authentication
+    sshpass -p 'aim8Du7h' timeout 1 ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${container_ip} exit 2>/dev/null
     return $?
 }
 
