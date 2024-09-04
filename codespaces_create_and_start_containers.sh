@@ -2,7 +2,7 @@
 
 # Purpose: In GitHub Codespaces, automates the setup of Docker containers,
 # preparation of Ansible inventory, and modification of tasks for testing.
-# Usage: ./codespaces_create_and_Start_containers.sh
+# Usage: ./codespaces_create_and_start_containers.sh
 
 # Enable strict error handling for better script robustness
 set -e  # Exit immediately if a command exits with a non-zero status
