@@ -169,9 +169,15 @@ echo "Step 9: Reading IP addresses from hosts.ini and updating the Ansible inven
 > ip_to_localhost_port.txt
 
 BASE_PORT=49152
-echo "[all]" >> codespaces_ansible_hosts.ini
+current_group=""
+
 while IFS= read -r line; do
-    if [[ "$line" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    if [[ "$line" =~ ^\[.*\]$ ]]; then
+        # Line is a group header
+        current_group="$line"
+        echo "$line" >> codespaces_ansible_hosts.ini
+    elif [[ "$line" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # Line is an IP address
         IP="$line"
         HOST_PORT=$(find_available_port $BASE_PORT)
         container_name="container_${IP//./_}"
@@ -179,6 +185,9 @@ while IFS= read -r line; do
         echo "${container_ip} ansible_host=${container_ip} ansible_user=root ansible_password='aim8Du7h' ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> codespaces_ansible_hosts.ini
         echo "Started container ${container_name} with IP ${container_ip}, mapped to host port ${HOST_PORT}" >> ip_to_localhost_port.txt
         BASE_PORT=$((HOST_PORT + 1))
+    else
+        # Line is something else (ignore or handle as needed)
+        echo "$line" >> codespaces_ansible_hosts.ini
     fi
 done < hosts.ini
 
