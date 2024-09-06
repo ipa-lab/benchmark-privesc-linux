@@ -13,12 +13,12 @@ set -x  # Print each command before executing it (useful for debugging)
 # Step 1: Initialization
 
 if [ ! -f hosts.ini ]; then
-    echo "hosts.ini not found! Please ensure your playbook exists before running the script."
+    echo "hosts.ini not found! Please ensure your Ansible inventory file exists before running the script."
     exit 1
 fi
 
 if [ ! -f tasks.yaml ]; then
-    echo "tasks.yaml not found! Please ensure your playbook exists before running the script."
+    echo "tasks.yaml not found! Please ensure your Ansible playbook file exists before running the script."
     exit 1
 fi
 
