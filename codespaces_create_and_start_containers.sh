@@ -123,18 +123,13 @@ sudo apt-get update
 echo "Installing Moby components (moby-engine, moby-cli, moby-tini)..."
 sudo apt-get install -y moby-engine moby-cli moby-tini moby-containerd
 
-# Step 5: Configure Docker to run without sudo
-
-echo "Adding current user to the docker group..."
-sudo usermod -aG docker $USER
-
-# Step 6: Start Docker and containerd services
+# Step 5: Start Docker and containerd services
 
 echo "Starting Docker daemon using Moby..."
 sudo service docker start || true
 sudo service containerd start || true
 
-# Step 7: Wait for Docker to be ready
+# Step 6: Wait for Docker to be ready
 
 echo "Waiting for Docker to be ready..."
 timeout=60
@@ -153,7 +148,7 @@ done
 
 echo "Docker (Moby) is ready."
 
-# Step 8: Install Python packages and Ansible
+# Step 7: Install Python packages and Ansible
 
 echo "Verifying Docker installation..."
 docker --version
@@ -165,7 +160,7 @@ sudo apt-get install -y python3 python3-pip sshpass
 echo "Installing Ansible and passlib using pip..."
 pip3 install ansible passlib
 
-# Step 9: Build Docker image with SSH enabled
+# Step 8: Build Docker image with SSH enabled
 
 echo "Building Docker image with SSH enabled..."
 if ! docker build -t ansible-ready-ubuntu -f codespaces_create_and_start_containers.Dockerfile .; then
@@ -173,7 +168,7 @@ if ! docker build -t ansible-ready-ubuntu -f codespaces_create_and_start_contain
     exit 1
 fi
 
-# Step 10: Create a custom Docker network if it does not exist
+# Step 9: Create a custom Docker network if it does not exist
 
 echo "Checking if the custom Docker network '${DOCKER_NETWORK_NAME}' with subnet 192.168.122.0/24 exists..."
 
@@ -184,7 +179,7 @@ fi
 # Generate SSH key
 generate_ssh_key
 
-# Step 11: Copy hosts.ini to codespaces_ansible_hosts.ini and update IP addresses
+# Step 10: Copy hosts.ini to codespaces_ansible_hosts.ini and update IP addresses
 
 echo "Copying hosts.ini to codespaces_ansible_hosts.ini and updating IP addresses..."
 
@@ -214,7 +209,7 @@ fi
 
 echo "Finished updating codespaces_ansible_hosts.ini"
 
-# Step 12: Wait for SSH services to start on all containers
+# Step 11: Wait for SSH services to start on all containers
 
 echo "Waiting for SSH services to start on all containers..."
 declare -A exit_statuses  # Initialize an associative array to track exit statuses
@@ -251,7 +246,7 @@ else
     echo "All containers are ready!"
 fi
 
-# Step 13: Create ansible.cfg file
+# Step 12: Create ansible.cfg file
 
 # Generate Ansible configuration file
 cat << EOF > codespaces_ansible.cfg
@@ -267,13 +262,13 @@ become_user = root
 become_ask_pass = False
 EOF
 
-# Step 14: Set ANSIBLE_CONFIG environment variable
+# Step 13: Set ANSIBLE_CONFIG environment variable
 
 export ANSIBLE_CONFIG=$(pwd)/codespaces_ansible.cfg
 
 echo "Setup complete. You can now run your Ansible playbooks."
 
-# Step 15: Run Ansible playbooks
+# Step 14: Run Ansible playbooks
 
 echo "Running Ansible playbook..."
 
