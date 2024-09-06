@@ -82,6 +82,27 @@ check_ssh_ready() {
     return $?
 }
 
+# Function to replace IP address and add Ansible configuration
+replace_ip_and_add_config() {
+    local original_ip="$1"
+    local container_name="${original_ip//./_}"
+
+    # Find an available port for the container
+    local available_port=$(find_available_port "$BASE_PORT")
+
+    # Start the container with the available port
+    local container_ip=$(start_container "$container_name" "$available_port" "$original_ip")
+
+    # Replace the original IP with the new container IP and add Ansible configuration
+    sed -i "s/^[[:space:]]*$original_ip[[:space:]]*$/$container_ip ansible_host=$container_ip ansible_user=ansible ansible_ssh_private_key_file=.\/codespaces_ansible_id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=\/dev\/null'/" codespaces_ansible_hosts.ini
+
+    echo "Started container ${container_name} with IP ${container_ip}, mapped to host port ${available_port}"
+    echo "Updated IP ${original_ip} to ${container_ip} in codespaces_ansible_hosts.ini"
+
+    # Increment BASE_PORT for the next container
+    BASE_PORT=$((available_port + 1))
+}
+
 # Step 3: Update and install prerequisites
 echo "Updating package lists..."
 
@@ -159,48 +180,35 @@ fi
 # Generate SSH key
 generate_ssh_key
 
-# Step 11: Read IP addresses from hosts.ini and update the Ansible inventory file
+# Step 11: Copy hosts.ini to codespaces_ansible_hosts.ini and update IP addresses
 
-echo "Reading IP addresses from hosts.ini and updating the Ansible inventory file..."
+echo "Copying hosts.ini to codespaces_ansible_hosts.ini and updating IP addresses..."
 
-# Initialize output files
-> codespaces_ansible_hosts.ini
+# Copy hosts.ini to codespaces_ansible_hosts.ini
+cp hosts.ini codespaces_ansible_hosts.ini
 
+# Read hosts.ini to get IP addresses and create containers
 current_group=""
-
-# Read hosts.ini and create containers
 while IFS= read -r line || [ -n "$line" ]; do
-    line=$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-
-    if [ -z "$line" ] || [[ $line == \#* ]]; then
-        continue
-    fi
-
-    if [[ $line == \[*] ]]; then
-        current_group=${line:1:-1}
-        echo "$line" >> codespaces_ansible_hosts.ini
-    elif [ -n "$current_group" ]; then
-        ip=$(echo $line | awk '{print $1}')
-        container_name="${ip//./_}"
-
-        # Find an available port for the container
-        available_port=$(find_available_port "$BASE_PORT")
-
-        # Start the container with the available port
-        container_ip=$(start_container "$container_name" "$available_port" "$ip")
-
-        # Append container details to Ansible inventory file
-        echo "${container_ip} ansible_host=${container_ip} ansible_user=ansible ansible_ssh_private_key_file=./codespaces_ansible_id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> codespaces_ansible_hosts.ini
-        echo "Started container ${container_name} with IP ${container_ip}, mapped to host port ${available_port}"
-
-        # Increment BASE_PORT for the next container
-        BASE_PORT=$((available_port + 1))
+    if [[ $line =~ ^\[(.+)\] ]]; then
+        current_group="${BASH_REMATCH[1]}"
+        echo "Processing group: $current_group"
+    elif [[ $line =~ ^[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)[[:space:]]*$ ]]; then
+        ip="${BASH_REMATCH[1]}"
+        echo "Found IP $ip in group $current_group"
+        replace_ip_and_add_config "$ip"
     fi
 done < hosts.ini
 
-# Add [all:vars] section
-echo "[all:vars]" >> codespaces_ansible_hosts.ini
-echo "ansible_python_interpreter=/usr/bin/python3" >> codespaces_ansible_hosts.ini
+# Add [all:vars] section if it doesn't exist
+if ! grep -q "\[all:vars\]" codespaces_ansible_hosts.ini; then
+    echo "Adding [all:vars] section to codespaces_ansible_hosts.ini"
+    echo "" >> codespaces_ansible_hosts.ini
+    echo "[all:vars]" >> codespaces_ansible_hosts.ini
+    echo "ansible_python_interpreter=/usr/bin/python3" >> codespaces_ansible_hosts.ini
+fi
+
+echo "Finished updating codespaces_ansible_hosts.ini"
 
 # Step 12: Wait for SSH services to start on all containers
 
