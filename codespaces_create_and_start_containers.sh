@@ -94,7 +94,7 @@ replace_ip_and_add_config() {
     local container_ip=$(start_container "$container_name" "$available_port" "$original_ip")
 
     # Replace the original IP with the new container IP and add Ansible configuration
-    sed -i "s/^[[:space:]]*$original_ip[[:space:]]*$/$container_ip ansible_host=$container_ip ansible_user=ansible ansible_ssh_private_key_file=.\/codespaces_ansible_id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=\/dev\/null'/" codespaces_ansible_hosts.ini
+    sed -i "s/^[[:space:]]*$original_ip[[:space:]]*$/$container_ip ansible_user=ansible ansible_ssh_private_key_file=.\/codespaces_ansible_id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=\/dev\/null'/" codespaces_ansible_hosts.ini
 
     echo "Started container ${container_name} with IP ${container_ip}, mapped to host port ${available_port}"
     echo "Updated IP ${original_ip} to ${container_ip} in codespaces_ansible_hosts.ini"
