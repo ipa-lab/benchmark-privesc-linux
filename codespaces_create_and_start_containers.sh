@@ -104,6 +104,7 @@ replace_ip_and_add_config() {
 }
 
 # Step 3: Update and install prerequisites
+
 echo "Updating package lists..."
 
 # Install prerequisites and set up Docker
@@ -111,6 +112,7 @@ sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
 
 # Step 4: Set up Docker repository and install Docker components
+
 echo "Adding Docker's official GPG key..."
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -152,6 +154,7 @@ done
 echo "Docker (Moby) is ready."
 
 # Step 8: Install Python packages and Ansible
+
 echo "Verifying Docker installation..."
 docker --version
 docker info
@@ -171,6 +174,7 @@ if ! docker build -t ansible-ready-ubuntu -f codespaces_create_and_start_contain
 fi
 
 # Step 10: Create a custom Docker network if it does not exist
+
 echo "Checking if the custom Docker network '${DOCKER_NETWORK_NAME}' with subnet 192.168.122.0/24 exists..."
 
 if ! docker network inspect ${DOCKER_NETWORK_NAME} >/dev/null 2>&1; then
@@ -270,6 +274,7 @@ export ANSIBLE_CONFIG=$(pwd)/codespaces_ansible.cfg
 echo "Setup complete. You can now run your Ansible playbooks."
 
 # Step 15: Run Ansible playbooks
+
 echo "Running Ansible playbook..."
 
 ansible-playbook -i codespaces_ansible_hosts.ini tasks.yaml
