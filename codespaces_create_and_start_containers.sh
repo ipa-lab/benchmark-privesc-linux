@@ -269,7 +269,7 @@ export ANSIBLE_CONFIG=$(pwd)/codespaces_ansible.cfg
 
 echo "Setup complete. You can now run your Ansible playbooks."
 
-# Step 14: Run Ansible playbooks
+# Step 15: Run Ansible playbooks
 echo "Running Ansible playbook..."
 
 ansible-playbook -i codespaces_ansible_hosts.ini tasks.yaml
