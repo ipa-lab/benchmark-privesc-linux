@@ -70,7 +70,6 @@ start_container() {
     # Copy SSH public key to container
     docker cp ./codespaces_ansible_id_rsa.pub ${container_name}:/home/ansible/.ssh/authorized_keys
     docker exec ${container_name} chown ansible:ansible /home/ansible/.ssh/authorized_keys
-    docker exec ${container_name} chmod 700 /home/ansible/.ssh
     docker exec ${container_name} chmod 600 /home/ansible/.ssh/authorized_keys
 
     echo "${container_ip}"
