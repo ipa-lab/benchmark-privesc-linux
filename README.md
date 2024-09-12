@@ -24,6 +24,19 @@ If you are using this benchmark for academic work, please help us by [citing us]
 }
 ~~~
 
+## How to start in GitHub CodeSpaces
+
+When creating your codespace, you should see:
+
+Setting up remote connection: Building codespace...
+
+Click "Building codespace..." to execute command
+'_codespaces.viewCreationLog' and watch it execute `codespaces_create_and_start_containers.sh`
+
+In GitHub Codespaces, you don't need to run `create_and_start_vms.sh`
+
+Feel free to run tests now...
+
 ## How to start the Benchmark Suite
 
 For easy use, we provide the `create_and_start_vms.sh` script which:
