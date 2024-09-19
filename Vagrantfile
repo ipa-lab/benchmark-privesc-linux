@@ -1,3 +1,7 @@
+# BUG parallel starting of the images resulted in some images
+# not being able to start
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
 Vagrant.configure("2") do |config|
   config.vm.box = "debian/bookworm64"
 
