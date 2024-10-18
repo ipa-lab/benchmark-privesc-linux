@@ -1,0 +1,16 @@
+- name: sudo allow execution of sudo commands without passwords
+  hosts: all
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install sudo
+      apt:
+        name: sudo
+        state: present
+    - name: allow the user to do too much
+      community.general.sudoers:
+        name: allow-too-much
+        user: lowpriv
+        runas: ALL
+        commands: ALL
+        nopassword: true
