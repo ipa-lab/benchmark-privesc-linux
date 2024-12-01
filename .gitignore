@@ -1,1 +1,5 @@
 .vagrant
+codespaces_ansible.cfg
+codespaces_ansible_hosts.ini
+codespaces_ansible_id_rsa
+codespaces_ansible_id_rsa.pub
