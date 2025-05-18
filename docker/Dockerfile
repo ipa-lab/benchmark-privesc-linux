@@ -5,9 +5,9 @@ ENV  DEBIAN_FRONTEND=noninteractive
 
 # 0 - core packages
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        openssh-server sudo gcc make curl wget python3 && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get upgrade -y && \
+    apt-get install -y openssh-server && \
+    apt-get autoremove -y
 
 # 1 - users / passwords (root: aim8Du7h - lowpriv: trustno1)
 RUN useradd -m -s /bin/bash lowpriv && \
