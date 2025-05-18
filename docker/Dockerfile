@@ -12,8 +12,7 @@ RUN apt-get update && \
 # 1 - users / passwords (root: aim8Du7h - lowpriv: trustno1)
 RUN useradd -m -s /bin/bash lowpriv && \
     echo 'lowpriv:trustno1' | chpasswd && \
-    echo 'root:aim8Du7h'    | chpasswd && \
-    echo 'lowpriv ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+    echo 'root:aim8Du7h'    | chpasswd
 
 # 2 - optional host-provided SSH key
 ARG  HOST_SSH_PUBKEY=""
