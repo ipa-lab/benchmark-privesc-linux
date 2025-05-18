@@ -7,14 +7,14 @@
 
 set -euo pipefail
 BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
-PORT_BASE=5001
+PORT_BASE=5000
 
 start_container () {
   local SCEN="$1"
   local IDX="$2"
   local IMAGE="privesc_${SCEN}"
   local NAME="${SCEN}"
-  local PORT=$((PORT_BASE + IDX - 1))
+  local PORT=$((PORT_BASE + IDX))
   echo "⏳  Preparing container: ${NAME}  (port ${PORT})"
   if docker ps -a --format '{{.Names}}' | grep -wq "${NAME}"; then
     echo "   🛑  Stopping existing container: ${NAME}"
@@ -25,6 +25,9 @@ start_container () {
   if [[ "${SCEN}" == "06_vuln_docker" ]]; then
     echo "   🐳  Docker-in-Docker: running in privileged mode and starting Docker inside"
     run_args+=( --privileged "${IMAGE}:latest" sh -c "service docker start && exec /usr/sbin/sshd -D -e" )
+  elif [[ "${SCEN}" == "11_cron_calling_user_wildcard" || "${SCEN}" == "12_cron_calling_user_file" ]]; then
+    echo "   ⏰  Cron-based scenario: starting cron service"
+    run_args+=( "${IMAGE}:latest" sh -c "service cron start && exec /usr/sbin/sshd -D -e" )
   else
     run_args+=( "${IMAGE}:latest" )
   fi

@@ -12,3 +12,4 @@ EOF
 chown lowpriv:lowpriv /home/lowpriv/backup.txt
 
 echo "* * * * * root cd /home/lowpriv/backup && tar -zcf /var/spool/backups/lowpriv.tar.gz *" >/etc/cron.d/backup_lowpriv
+crontab /etc/cron.d/backup_lowpriv

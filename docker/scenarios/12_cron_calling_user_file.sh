@@ -9,3 +9,4 @@ EOF
 chmod 777 /home/lowpriv/cron.sh
 
 echo "* * * * * root /home/lowpriv/cron.sh" >/etc/cron.d/lowpriv_script
+crontab /etc/cron.d/lowpriv_script
