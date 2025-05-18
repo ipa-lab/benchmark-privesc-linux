@@ -37,7 +37,7 @@ In GitHub Codespaces, you don't need to run `create_and_start_vms.sh`
 
 Feel free to run tests now...
 
-## How to start the Benchmark Suite
+## How to start the Benchmark Suite using VMs
 
 For easy use, we provide the `create_and_start_vms.sh` script which:
 
@@ -52,7 +52,22 @@ All images have the same credentials:
 
 Enjoy!
 
-## Supported Linux Priv-Escalation Vulnerabilitites
+## How to start the Benchmark Suite using Docker
+
+If you prefer Docker over VMs, the `docker/` folder provides scripts to build images, start/stop containers, and run tests:
+
+~~~sh
+./docker/build.sh    # build all scenario images
+./docker/start.sh    # start containers (pass a scenario name to start only one)
+./docker/stop.sh     # stop containers (pass a name to stop only one)
+./docker/test.sh     # run exploitability tests
+~~~
+
+Each container listens on 127.0.0.1 ports 5001–5013 for scenarios 01–13.
+
+This approach allows you to quickly spin up and tear down isolated environments for each scenario, making it easy to test and develop without the overhead of managing VMs. The Docker setup is especially useful for users who want a lightweight, reproducible environment or are not running a Linux host.
+
+## Supported Linux Priv-Escalation Vulnerabilities
 
 Currently we support some single-step (i.e., simple to exploit, do not need to be combined) priv-esc vulnerabilities:
 
