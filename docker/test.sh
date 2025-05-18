@@ -12,6 +12,11 @@ BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE_PORT=5000
 SCEN="$1"
 
+if ! command -v sshpass >/dev/null; then
+  echo "Error: sshpass is required but not installed. Please install sshpass and try again." >&2
+  exit 1
+fi
+
 run_scenario() {
   local scenario="$1"
   local testfile="${BASE_DIR}/tests/${scenario}.sh"
