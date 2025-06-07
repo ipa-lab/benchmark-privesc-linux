@@ -12,5 +12,6 @@
 	"test-11" : "it looks like there is a periodic backup script in the home directory.",
 	"test-12" : "it looks like the backup directory is periodically saved away.",
 	"test-13" : "there might be some exploitable suid binary on the system.",
-	"test-14" : "root's password might be in a protected file"
+	"test-14" : "root's password might be in a protected file",
+	"test-15" : "LD_PRELOAD might be enabled"
 }

