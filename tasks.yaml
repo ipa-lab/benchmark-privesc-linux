@@ -270,3 +270,18 @@
     - name: set the suid bit for tee
       command: chmod u+s /usr/bin/tee
       # echo "lowpriv ALL=(ALL) NOPASSWD: ALL" | tee -a /etc/sudoers; sudo su
+
+- name: suid allow access to read privileges
+  hosts: vuln_suid_read_privileges
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: write root password into file
+      copy:
+        content: "aim8Du7h\n"
+        dest: "/home/lowpriv/root_password"
+        mode: "0400"
+      
+    - name: set the suid bit for base64
+      command: chmod u+s /usr/bin/base64
+      # base64 root_password | base64 -d; su
