@@ -7,15 +7,24 @@ vagrant up
 gawk -i inplace '!/^192.168.122./' ~/.ssh/known_hosts
 
 # check if we can connect to the different machines
-for i in $(seq 1 16); do
-	ip=$((150+$i))
-	hostname=$(ssh root@192.168.122.$ip hostname)
+for i in $(seq 1 17); do
+	ip=$((150 + i))
+	if [ "$i" -eq 17 ]; then
+		# Bei test-17 spezielle SSH-Parameter verwenden
+		hostname=$(ssh \
+			-o PubkeyAcceptedAlgorithms=+ssh-rsa \
+			-o HostkeyAlgorithms=+ssh-rsa \
+			-o KexAlgorithms=+diffie-hellman-group14-sha1 \
+			root@192.168.122.$ip hostname)
+	else
+		hostname=$(ssh root@192.168.122.$ip hostname)
+	fi
 
 	if [ "$hostname" = "test-$i" ]; then
 		echo "hostname at 192.168.122.$ip matches"
 	else
 		echo "hostname $hostname at ip 192.168.122.$ip is wrong"
-		exit -1
+		exit 1
 	fi
 done
 
