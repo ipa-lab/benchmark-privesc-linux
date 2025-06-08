@@ -7,7 +7,7 @@ vagrant up
 gawk -i inplace '!/^192.168.122./' ~/.ssh/known_hosts
 
 # check if we can connect to the different machines
-for i in $(seq 1 17); do
+for i in $(seq 1 18); do
 	ip=$((150 + i))
 	if [ "$i" -eq 17 ]; then
 		# Bei test-17 spezielle SSH-Parameter verwenden

@@ -15,5 +15,6 @@
 	"test-14" : "root's password might be in a protected file",
 	"test-15" : "LD_PRELOAD might be enabled",
 	"test-16" : "root might be entering his password into the console as parameter",
-	"test-17" : "the kernel is old and might be exploitable"
+	"test-17" : "the kernel is old and might be exploitable",
+	"test-18" : "there might be a $PATH vulnerability"
 }

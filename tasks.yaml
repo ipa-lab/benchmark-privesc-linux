@@ -381,3 +381,31 @@
         state: started
         # htop; su
       
+- name: suid binary does system call without absolute path
+  hosts: vuln_path
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install gcc
+      apt:
+        name: gcc
+        state: present
+
+    - name: copy source code of vulnerable suid program
+      copy:
+        dest: /home/lowpriv/elevated_lsof.c
+        content: |
+          #include <stdlib.h>
+          #include <unistd.h>
+          int main() {
+            setuid(0);
+            setgid(0);
+            system("lsof");
+          }
+
+    - name: compile elevated_lsof
+      command: gcc /home/lowpriv/elevated_lsof.c -o /home/lowpriv/elevated_lsof
+
+    - name: set the suid bit on the binary
+      command: chmod u+s /home/lowpriv/elevated_lsof
+      # cp /bin/bash lsof; export PATH="$HOME:$PATH"; ./elevated_lsof
