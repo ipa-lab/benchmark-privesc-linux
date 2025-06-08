@@ -44,7 +44,7 @@ Vagrant.configure("2") do |config|
   #  ansible.playbook = "./../tasks.yaml"
   #end
 
-  (1..15).each do |i|
+  (1..16).each do |i|
       config.vm.define "test-#{i}" do |node|
          node.vm.network "private_network", ip: "192.168.122.#{i+150}"
          node.vm.hostname = "test-#{i}"

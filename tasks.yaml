@@ -327,3 +327,57 @@
         # }
         # gcc -fPIC -shared -o exploit.so exploit.c -nostartfiles
         # sudo LD_PRELOAD=$PWD/exploit.so /bin/mount /dev/sdb1 /mnt/usb
+
+- name: root password entered into console as parameter
+  hosts: vuln_password_in_console
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install gcc
+      apt:
+        name: gcc
+        state: present
+
+    - name: install htop
+      apt:
+        name: htop
+        state: present
+
+    - name: copy source code of fake mysql program
+      copy:
+        dest: /root/fake_mysql.c
+        content: |
+          #include <unistd.h>
+          int main() {
+            while(1) { sleep(1); }
+          }
+
+    - name: compile mysql program
+      command: gcc /root/fake_mysql.c -o /root/mysql
+
+    - name: create systemd task that calls mysql and leaks the root password
+      copy:
+          dest: /etc/systemd/system/mysql.service
+          content: |
+            [Unit]
+            Description=Fake MySQL process
+            After=network.target
+
+            [Service]
+            ExecStart=/root/mysql -u root -p aim8Du7h
+            Restart=always
+            User=root
+
+            [Install]
+            WantedBy=multi-user.target
+    
+    - name: restart systemctl
+      command: systemctl daemon-reload
+
+    - name: start the fake mysql service
+      systemd:
+        name: mysql
+        enabled: yes
+        state: started
+        # htop; su
+      
