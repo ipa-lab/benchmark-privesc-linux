@@ -477,7 +477,7 @@
         enabled: yes
         state: started
         # nano exploit.c
-        # include <mysql.h>
+        #include <mysql.h>
         # int sys_exec_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
         #     return 0;
         # }
