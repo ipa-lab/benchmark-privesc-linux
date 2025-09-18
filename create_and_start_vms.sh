@@ -10,7 +10,7 @@ gawk -i inplace '!/^192.168.122./' ~/.ssh/known_hosts
 for i in $(seq 1 20); do
 	ip=$((150 + i))
 	if [ "$i" -eq 17 ]; then
-		# Bei test-17 spezielle SSH-Parameter verwenden
+		# Use special SSH parameters for test-17
 		hostname=$(ssh \
 			-o PubkeyAcceptedAlgorithms=+ssh-rsa \
 			-o HostkeyAlgorithms=+ssh-rsa \
