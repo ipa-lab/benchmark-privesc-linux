@@ -73,7 +73,7 @@ Currently we support some single-step (i.e., simple to exploit, do not need to b
 
 | ansible task | vulnerability |
 | --- | --- |
-| `vuln_suid_gtfo` | set SUID bit on `/usr/bin/find` and `/user/bin/python3.11` |
+| `vuln_suid_gtfo` | set SUID bit on `/usr/bin/find` and `/usr/bin/python3.11` |
 | `vuln_sudo_no_password` | allow `lowpriv` to call `sudo` with any command |
 | `vuln_sudo_gtfo` | allow `lowpriv` to call `/usr/bin/tar` through `sudo` |
 | `vuln_sudo_gtfo_interactive` | allow `lowpriv` to call `/usr/bin/less` and `/usr/bin/man` through `sudo` |
